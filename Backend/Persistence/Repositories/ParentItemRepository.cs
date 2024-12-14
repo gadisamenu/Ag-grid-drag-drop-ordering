@@ -13,15 +13,11 @@ public class ParentItemRepository : Repository<ParentItem>, IParentItemRepositor
     {
     }
 
-    public async Task<IEnumerable<ParentItem>> GetOrderedItemsAsync(int page=1, int limit=10)
+    public async Task<IEnumerable<ParentItem>> GetOrderedItemsAsync()
     {
-        int skip = (page - 1) * limit;
     
         return await _dbContext.ParentItems
-            .OrderBy(x => x.Order)
-            .Skip(skip)
-            .Take(limit)
-            .ToListAsync();
+            .OrderBy(x => x.Order).ToListAsync();
     }
 
     public async Task<Unit> MoveItemsInRange(int startOrder, int? endOrder = null, bool moveDown = false)

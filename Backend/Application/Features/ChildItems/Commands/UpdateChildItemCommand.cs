@@ -3,7 +3,7 @@ using MediatR;
 using AutoMapper;
 using Application.Contracts.Persistance;
 using Application.Features.ChildItems.Dtos;
-using Domain;
+using Application.Common.Errors;
 
 
 namespace Application.Features.ChildItems.Commands
@@ -11,6 +11,7 @@ namespace Application.Features.ChildItems.Commands
     public class UpdateChildItemCommand : IRequest<ErrorOr<ChildItemDto>>
     {
         public UpdateChildItemDto Payload { get; set; }
+        public long Id { get; set; }
     }
 
     public class UpdateChildItemCommandHandler
@@ -30,9 +31,12 @@ namespace Application.Features.ChildItems.Commands
             CancellationToken cancellationToken
         )
         {
-            var itemData = _mapper.Map<ChildItem>(command.Payload);
+            var item =  await _unitOfWork.ChildItemRepo.GetByIdAsync(command.Id);
+            if (item == null) return ErrorFactory.NotFound("ChildItem", "Item Not Found");
 
-            var item = await _unitOfWork.ChildItemRepo.AddAsync(itemData);
+            item = _mapper.Map(command.Payload, item);
+
+            _unitOfWork.ChildItemRepo.UpdateAsync(item);
 
             var changes = await _unitOfWork.SaveAsync();
 

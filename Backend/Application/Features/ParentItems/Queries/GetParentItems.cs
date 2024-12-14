@@ -3,17 +3,15 @@ using Application.Features.ParentItems.Dtos;
 using AutoMapper;
 using MediatR;
 using ErrorOr;
-using Application.Common.Responses;
-using Application.Features.Common;
 
 
 namespace Application.Features.ParentItems.Queries;
 
-public class GetParentItemsByParentIdQuery :PaginatedQuery, IRequest<ErrorOr<BaseResponse<List<ParentItemDto>>>>
+public class GetParentItemsByParentIdQuery :IRequest<ErrorOr<List<ParentItemDto>>>
 {
 }
 
-public class GetParentItemsByParentIdQueryHandler : IRequestHandler<GetParentItemsByParentIdQuery, ErrorOr<BaseResponse<List<ParentItemDto>>>>
+public class GetParentItemsByParentIdQueryHandler : IRequestHandler<GetParentItemsByParentIdQuery, ErrorOr<List<ParentItemDto>>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -24,15 +22,12 @@ public class GetParentItemsByParentIdQueryHandler : IRequestHandler<GetParentIte
         _mapper = mapper;
     }
 
-    public async Task<ErrorOr<BaseResponse<List<ParentItemDto>>>> Handle(GetParentItemsByParentIdQuery request,
+    public async Task<ErrorOr<List<ParentItemDto>>> Handle(GetParentItemsByParentIdQuery request,
         CancellationToken cancellationToken)
     {
-        var childItems = await _unitOfWork.ParentItemRepo.GetOrderedItemsAsync(request.PageNumber,request.PageSize);
+        var childItems = await _unitOfWork.ParentItemRepo.GetOrderedItemsAsync();
 
-        return new BaseResponse<List<ParentItemDto>> {
-            Value = _mapper.Map<List<ParentItemDto>>(childItems),
-            Message = "Fetch Successful",
-        };
+        return  _mapper.Map<List<ParentItemDto>>(childItems);
 
     }
 }

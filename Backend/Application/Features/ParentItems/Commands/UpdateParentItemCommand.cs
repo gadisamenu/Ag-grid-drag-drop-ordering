@@ -4,7 +4,6 @@ using AutoMapper;
 using Application.Contracts.Persistance;
 using Application.Features.ParentItems.Dtos;
 using Application.Common.Errors;
-using Domain;
 
 
 namespace Application.Features.ParentItems.Commands
@@ -12,6 +11,7 @@ namespace Application.Features.ParentItems.Commands
     public class UpdateParentItemCommand : IRequest<ErrorOr<ParentItemDto>>
     {
         public UpdateParentItemDto Payload { get; set; }
+        public long Id { get; set; }
     }
 
     public class UpdateParentItemCommandHandler
@@ -31,9 +31,14 @@ namespace Application.Features.ParentItems.Commands
             CancellationToken cancellationToken
         )
         {
-            var itemData = _mapper.Map<ParentItem>(command.Payload);
 
-            var item = await _unitOfWork.ParentItemRepo.AddAsync(itemData);
+            var item = await _unitOfWork.ParentItemRepo.GetByIdAsync(command.Id);
+
+            if (item == null) return ErrorFactory.NotFound("ParentItem", "Item Not Found");
+
+            item = _mapper.Map(command.Payload, item);
+
+            _unitOfWork.ParentItemRepo.UpdateAsync(item);
 
             var changes = await _unitOfWork.SaveAsync();
 

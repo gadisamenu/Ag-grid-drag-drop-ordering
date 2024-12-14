@@ -1,10 +1,8 @@
-using Application.Common.Responses;
 
 namespace Application.Responses;
 
-public class PaginatedResponse<T>: BaseResponse<List<T>>
+public class PaginatedResponse<T>
 {
-    public int PageNumber  { get; set; }
-    public int PageSize { get;set; }
-    public int Count { get; set; }
+    public List<T> Value { get; set; }
+    public int Page  { get; set; }
 }

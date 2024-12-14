@@ -9,12 +9,9 @@ namespace API.Controllers
     {
    
         [HttpGet]
-        public async Task<IActionResult> GetItems(
-            [FromQuery] int page = 1, 
-            [FromQuery] int size = 10
-        )
+        public async Task<IActionResult> GetItems()
         {
-            return HandleResult(await Mediator.Send(new GetParentItemsByParentIdQuery {PageNumber = page, PageSize = size}));
+            return HandleResult(await Mediator.Send(new GetParentItemsByParentIdQuery{}));
         }
 
         [HttpPost]
@@ -23,10 +20,10 @@ namespace API.Controllers
             return HandleResult(await Mediator.Send(new CreateParentItemCommand { Payload = childItem }));
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateItem([FromBody] UpdateParentItemDto childItem)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateItem([FromBody] UpdateParentItemDto childItem,[FromRoute] long id)
         {
-            return HandleResult(await Mediator.Send(new UpdateParentItemCommand { Payload = childItem }));
+            return HandleResult(await Mediator.Send(new UpdateParentItemCommand { Payload = childItem ,Id = id}));
         }
 
         [HttpDelete("{id}")]

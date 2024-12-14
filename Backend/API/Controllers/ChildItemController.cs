@@ -20,10 +20,10 @@ namespace API.Controllers
             return HandleResult(await Mediator.Send(new CreateChildItemCommand { Payload = childItem }));
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateItem([FromBody] UpdateChildItemDto childItem)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateItem([FromBody] UpdateChildItemDto childItem,[FromRoute] long id)
         {
-            return HandleResult(await Mediator.Send(new UpdateChildItemCommand { Payload = childItem }));
+            return HandleResult(await Mediator.Send(new UpdateChildItemCommand { Payload = childItem ,Id = id}));
         }
 
         [HttpDelete("{id}")]

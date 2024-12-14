@@ -3,17 +3,16 @@ using Application.Features.ChildItems.Dtos;
 using AutoMapper;
 using MediatR;
 using ErrorOr;
-using Application.Common.Responses;
 
 
 namespace Application.Features.ChildItems.Queries;
 
-public class GetChildItemsByParentIdQuery : IRequest<ErrorOr<BaseResponse<List<ChildItemListDto>>>>
+public class GetChildItemsByParentIdQuery : IRequest<ErrorOr<List<ChildItemListDto>>>
 {
     public long ParentId { get; set; }
 }
 
-public class GetChildItemsByParentIdQueryHandler : IRequestHandler<GetChildItemsByParentIdQuery, ErrorOr<BaseResponse<List<ChildItemListDto>>>>
+public class GetChildItemsByParentIdQueryHandler : IRequestHandler<GetChildItemsByParentIdQuery, ErrorOr<List<ChildItemListDto>>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -24,16 +23,12 @@ public class GetChildItemsByParentIdQueryHandler : IRequestHandler<GetChildItems
         _mapper = mapper;
     }
 
-    public async Task<ErrorOr<BaseResponse<List<ChildItemListDto>>>> Handle(GetChildItemsByParentIdQuery request,
+    public async Task<ErrorOr<List<ChildItemListDto>>> Handle(GetChildItemsByParentIdQuery request,
         CancellationToken cancellationToken)
     {
         var childItems = await _unitOfWork.ChildItemRepo.GetChildItemsWithParentIdAsync( request.ParentId);
 
 
-        return new BaseResponse<List<ChildItemListDto>> {
-            Value = _mapper.Map<List<ChildItemListDto>>(childItems),
-            Message = "Fetch Successful",
-        };
-
+        return  _mapper.Map<List<ChildItemListDto>>(childItems);
     }
 }
