@@ -8,7 +8,7 @@ import {
   useUpdateParentItemMutation,
 } from "@/store/api";
 import { ChangeParentItemOrder, ParentItem } from "@/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import {
   ModuleRegistry,
@@ -48,20 +48,12 @@ import ChildItemGrid from "@/components/child-item/ChidlItem";
 import { ColDef, DragStoppedEvent } from "ag-grid-community";
 
 import React from "react";
-import { MdDelete } from "react-icons/md";
 import AddRowForm from "@/components/common/AddRow";
 import DeleteCellRenderer from "@/components/common/DeleteRenderer";
+import { AiOutlineTable } from "react-icons/ai";
 
 export default function Home() {
-  const { data, isLoading, isFetching, refetch } = useGetParentItemsQuery({});
-
-  const [items, setItems] = useState<ParentItem[]>([]);
-
-  useEffect(() => {
-    if (data) {
-      setItems([...data]);
-    }
-  }, [data]);
+  const { data } = useGetParentItemsQuery({});
 
   const [changeOrder, { isLoading: changeLoading, isSuccess: changeSuccess }] =
     useChangeParentItemOrderMutation();
@@ -114,19 +106,16 @@ export default function Home() {
     };
   }, []);
 
-  // const memoData = useMemo<ParentItem[]>(() => (data ? [...data] : []), [data]);
-
-  //   console.log(data);
-  console.log("iserr", isError);
-  console.log("isloading", updateLoading);
+  const memoData = useMemo<ParentItem[]>(
+    () => (data ? [...data.map((elt) => ({ ...elt }))] : []),
+    [data]
+  );
 
   const saveEdit = useCallback(
     async (event: CellEditingStoppedEvent) => {
       const rowData = { ...event.data };
-      console.log("saveEdit", event.column);
       if (rowData) {
         try {
-          console.log("rowData", rowData);
           await updateItem({
             id: rowData.id,
             data: { name: rowData.name },
@@ -151,9 +140,7 @@ export default function Home() {
         newOrder: parseInt(rowIndex) + 1,
       };
       try {
-        const response = await changeOrder(changeData);
-
-        console.log("response", response);
+        const response = await changeOrder(changeData).unwrap();
       } catch (e) {
         console.log(e);
       }
@@ -162,7 +149,7 @@ export default function Home() {
 
   const handleAddRow = async (name: string) => {
     try {
-      await createItem({ name });
+      await createItem({ name }).unwrap();
     } catch (e) {
       console.log(e);
     }
@@ -170,23 +157,44 @@ export default function Home() {
 
   return (
     <Container>
-      <div className="flex flex-col gap-8 lg:gap-16">
-        <p> here is the page</p>
-        <div>
-          <AddRowForm loading={createLoading} submit={handleAddRow} />
-          <AgGridReact<ParentItem>
-            domLayout="autoHeight"
-            rowData={items}
-            columnDefs={columnDefs}
-            defaultColDef={defaultColDef}
-            rowDragEntireRow={true}
-            rowDragManaged={true}
-            onDragStopped={dragStopHandler}
-            masterDetail={true}
-            detailCellRenderer={ChildItemGrid}
-            detailRowAutoHeight={true}
-            onCellEditingStopped={saveEdit}
-          />
+      <div className="min-h-screen bg-gray-100 p-4">
+        {/* Header Section */}
+        <div className="bg-white shadow-md rounded-lg p-6 mb-4">
+          <div className="flex items-center justify-between">
+            {/* Title and Subtitle */}
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center">
+                <AiOutlineTable className="text-blue-500 mr-2" /> Data Grid
+                Dashboard
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Manage your data effectively with detailed insights. Column Name
+                is editable. To edit the field double click on the cell.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Grid Section */}
+        <div className="bg-white shadow-md rounded-lg p-4">
+          <div className="ag-theme-alpine" style={{ width: "100%" }}>
+            <div className="flex flex-col gap-2">
+              <AddRowForm loading={createLoading} submit={handleAddRow} />
+              <AgGridReact<ParentItem>
+                domLayout="autoHeight"
+                rowData={memoData}
+                columnDefs={columnDefs}
+                defaultColDef={defaultColDef}
+                rowDragEntireRow={true}
+                rowDragManaged={true}
+                onDragStopped={dragStopHandler}
+                masterDetail={true}
+                detailCellRenderer={ChildItemGrid}
+                detailRowAutoHeight={true}
+                onCellEditingStopped={saveEdit}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </Container>

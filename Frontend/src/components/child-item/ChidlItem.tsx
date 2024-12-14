@@ -4,12 +4,17 @@ import {
   useCreateChildItemMutation,
   useDeleteChildItemMutation,
   useGetChildItemsQuery,
+  useUpdateChildItemMutation,
 } from "@/store/api";
 import { ChangeParentItemOrder, ChildItem, ParentItem } from "@/types";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AgGridReact, CustomCellRendererProps } from "ag-grid-react";
 
-import { ColDef, DragStoppedEvent } from "ag-grid-community";
+import {
+  CellEditingStoppedEvent,
+  ColDef,
+  DragStoppedEvent,
+} from "ag-grid-community";
 import AddRowForm from "../common/AddRow";
 import DeleteCellRenderer from "../common/DeleteRenderer";
 
@@ -22,6 +27,7 @@ export default function ChildItemGrid({
 
   const [createItem, { isLoading: createLoading }] =
     useCreateChildItemMutation();
+  const [updateItem] = useUpdateChildItemMutation();
   const [deleteItem] = useDeleteChildItemMutation();
   const [columnDefs, setColumnDefs] = useState<ColDef<ChildItem>[]>([
     {
@@ -32,6 +38,7 @@ export default function ChildItemGrid({
     {
       headerName: "Name",
       field: "name",
+      editable: true,
     },
     {
       headerName: "Order",
@@ -76,16 +83,33 @@ export default function ChildItemGrid({
         newOrder: parseInt(rowIndex) + 1,
       };
       try {
-        await changeOrder(changeData);
+        await changeOrder(changeData).unwrap();
       } catch (e) {
         console.log(e);
       }
     }
   };
 
+  const saveEdit = useCallback(
+    async (event: CellEditingStoppedEvent) => {
+      const rowData = { ...event.data };
+      if (rowData) {
+        try {
+          await updateItem({
+            id: rowData.id,
+            data: { name: rowData.name },
+          }).unwrap();
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    },
+    [updateItem, data]
+  );
+
   const handleAddRow = async (name: string) => {
     try {
-      await createItem({ parentId: data?.id!, name: name });
+      await createItem({ parentId: data?.id!, name: name }).unwrap();
     } catch (e) {
       console.log(e);
     }
@@ -93,7 +117,7 @@ export default function ChildItemGrid({
 
   useEffect(() => {
     if (data) {
-      refetch();
+      refetch().unwrap();
     }
   }, [data]);
 
@@ -114,6 +138,9 @@ export default function ChildItemGrid({
         rowDragEntireRow={true}
         rowDragManaged={true}
         onDragStopped={dragStopHandler}
+        onCellEditingStopped={saveEdit}
+        headerHeight={30}
+        rowHeight={30}
       />
     </div>
   );
