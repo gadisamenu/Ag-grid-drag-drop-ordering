@@ -2,15 +2,24 @@ using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Persistence.Configurations.Security;
+namespace Persistence.Configurations;
 
-public class UserRoleConfiguration : IEntityTypeConfiguration<ParentItem>
+public class ParentItemConfiguration : IEntityTypeConfiguration<ParentItem>
 {
 
 
     public void Configure(EntityTypeBuilder<ParentItem> builder)
     {
-        // builder.HasIndex(x => x.Order).IsUnique(true);
+        for (int i = 0; i < 10; i++)
+        {
+            builder.HasData(new ParentItem
+            {
+                Id = i + 1,
+                Name = $"ParentItem {i + 1}",
+                ChildCount = 2,
+                Order = i + 1
+            });
+        }
         
     }
 }
