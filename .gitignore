@@ -1,0 +1,4 @@
+.nginx/certs/
+*.pem
+*.key
+*.crt
