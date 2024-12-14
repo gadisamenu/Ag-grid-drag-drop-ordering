@@ -26,7 +26,8 @@ Ensure you have the following tools installed on your system:
      dotnet ef --version
      ```
 6. **PostgreSQL database**
-   [Download PostgreSQL](https://www.postgresql.org/download/)
+   - Install PostgreSQL 16
+     [Download PostgreSQL](https://www.postgresql.org/download/)
 
 ---
 
