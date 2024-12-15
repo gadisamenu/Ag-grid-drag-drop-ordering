@@ -80,7 +80,9 @@ export const webApi = createApi({
       query: (params) => {
         return `childitems/${params.parentId}`;
       },
-      providesTags: [TagTypes.ChildItems],
+      providesTags: (result, error, args) => [
+        { parentId: args.parentId, type: TagTypes.ChildItems },
+      ],
     }),
 
     createChildItem: builder.mutation<ChildItem, CreateChildItem>({
@@ -89,40 +91,65 @@ export const webApi = createApi({
         method: "POST",
         body: { ...item },
       }),
-      invalidatesTags: (results, meta, args) => [
-        { type: TagTypes.ChildItems },
+      // async onQueryStarted({ parentId }, { dispatch, queryFulfilled }) {
+      //   try {
+      //     const { data: createdPost } = await queryFulfilled;
+      //     console.log("createdPost", createdPost);
+      //     const patchResult = dispatch(
+      //       webApi.util.updateQueryData("getParentItems", undefined, (draft) =>
+      //         Object.assign(draft, [
+      //           ...draft.filter((p) => p.id !== parentId),
+      //           { ...createdPost?.parent },
+      //         ])
+      //       )
+      //     );
+      //   } catch {}
+      // },
+      invalidatesTags: (result, meta, args) => [
+        { parentId: args.parentId, type: TagTypes.ChildItems },
         { type: TagTypes.ParentItems },
       ],
     }),
 
-    deleteChildItem: builder.mutation<ParentItem, { id: number }>({
+    deleteChildItem: builder.mutation<
+      ParentItem,
+      { id: number; parentId: number }
+    >({
       query: (payload) => ({
         url: `childitems/${payload.id}`,
         method: "DELETE",
       }),
       invalidatesTags: (results, meta, args) => [
-        { type: TagTypes.ChildItems },
+        { parentId: args.parentId, type: TagTypes.ChildItems },
         { type: TagTypes.ParentItems },
       ],
     }),
+
     updateChildItem: builder.mutation<
       ChildItem,
-      { id: number; data: UpdateChildItem }
+      { id: number; parentId: number; data: UpdateChildItem }
     >({
       query: (payload) => ({
         url: `childitems/${payload.id}`,
         method: "PUT",
         body: { ...payload.data },
       }),
-      invalidatesTags: (results, meta, args) => [{ type: TagTypes.ChildItems }],
+      invalidatesTags: (results, meta, args) => [
+        { parentId: args.parentId, type: TagTypes.ChildItems },
+      ],
     }),
-    changeChildItemOrder: builder.mutation<ChildItem, ChangeChildItemOrder>({
+    changeChildItemOrder: builder.mutation<
+      ChildItem,
+      { parentId: number; data: ChangeChildItemOrder }
+    >({
       query: (payload) => ({
         url: `childitems/change-order`,
         method: "PUT",
-        body: { ...payload },
+        body: { ...payload.data },
       }),
-      invalidatesTags: [{ type: TagTypes.ChildItems }],
+      invalidatesTags: (results, meta, args) => [
+        { parentId: args.parentId, type: TagTypes.ChildItems },
+      ],
     }),
   }),
 });

@@ -7,6 +7,7 @@ export interface ChildItem {
   id: number;
   name: string;
   order: number;
+  parent?: ParentItem;
 }
 
 export interface CreateChildItem {
