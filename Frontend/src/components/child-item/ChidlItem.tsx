@@ -29,6 +29,12 @@ export default function ChildItemGrid({
     useCreateChildItemMutation();
   const [updateItem] = useUpdateChildItemMutation();
   const [deleteItem] = useDeleteChildItemMutation();
+  const handleDelete = useCallback(
+    ({ id }: { id: number }) => {
+      deleteItem({ id: id, parentId: data?.id! });
+    },
+    [deleteItem, data]
+  );
   const [columnDefs, setColumnDefs] = useState<ColDef<ChildItem>[]>([
     {
       headerName: "Id",
@@ -49,7 +55,7 @@ export default function ChildItemGrid({
       field: "id",
       cellRenderer: DeleteCellRenderer,
       cellRendererParams: {
-        onDelete: deleteItem,
+        onDelete: handleDelete,
       },
       flex: 1,
     },
@@ -83,7 +89,7 @@ export default function ChildItemGrid({
         newOrder: parseInt(rowIndex) + 1,
       };
       try {
-        await changeOrder(changeData).unwrap();
+        await changeOrder({ data: changeData, parentId: data?.id! }).unwrap();
       } catch (e) {
         console.log(e);
       }
@@ -97,6 +103,7 @@ export default function ChildItemGrid({
         try {
           await updateItem({
             id: rowData.id,
+            parentId: data?.id!,
             data: { name: rowData.name },
           }).unwrap();
         } catch (e) {

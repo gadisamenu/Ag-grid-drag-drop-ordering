@@ -53,7 +53,7 @@ import DeleteCellRenderer from "@/components/common/DeleteRenderer";
 import { AiOutlineTable } from "react-icons/ai";
 
 export default function Home() {
-  const { data } = useGetParentItemsQuery({});
+  const { data } = useGetParentItemsQuery(undefined);
 
   const [changeOrder, { isLoading: changeLoading, isSuccess: changeSuccess }] =
     useChangeParentItemOrderMutation();

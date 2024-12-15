@@ -30,7 +30,7 @@ export const webApi = createApi({
   tagTypes: Object.values(TagTypes),
 
   endpoints: (builder) => ({
-    getParentItems: builder.query<ParentItem[], any>({
+    getParentItems: builder.query<ParentItem[], undefined>({
       query: () => {
         return `parentitems`;
       },
@@ -91,23 +91,28 @@ export const webApi = createApi({
         method: "POST",
         body: { ...item },
       }),
-      // async onQueryStarted({ parentId }, { dispatch, queryFulfilled }) {
-      //   try {
-      //     const { data: createdPost } = await queryFulfilled;
-      //     console.log("createdPost", createdPost);
-      //     const patchResult = dispatch(
-      //       webApi.util.updateQueryData("getParentItems", undefined, (draft) =>
-      //         Object.assign(draft, [
-      //           ...draft.filter((p) => p.id !== parentId),
-      //           { ...createdPost?.parent },
-      //         ])
-      //       )
-      //     );
-      //   } catch {}
-      // },
+      async onQueryStarted({ parentId }, { dispatch, queryFulfilled }) {
+        try {
+          const { data: createdPost } = await queryFulfilled;
+          dispatch(
+            webApi.util.updateQueryData(
+              "getParentItems",
+              undefined,
+              (draft) => {
+                const parentItem = draft.find((p) => p.id === parentId);
+                if (parentItem) {
+                  parentItem.childCount =
+                    createdPost.parent?.childCount || parentItem.childCount + 1;
+                }
+              }
+            )
+          );
+        } catch (e) {
+          console.log("error", e);
+        }
+      },
       invalidatesTags: (result, meta, args) => [
         { parentId: args.parentId, type: TagTypes.ChildItems },
-        { type: TagTypes.ParentItems },
       ],
     }),
 
@@ -119,9 +124,28 @@ export const webApi = createApi({
         url: `childitems/${payload.id}`,
         method: "DELETE",
       }),
+      async onQueryStarted({ parentId }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+
+          dispatch(
+            webApi.util.updateQueryData(
+              "getParentItems",
+              undefined,
+              (draft) => {
+                const parentItem = draft.find((p) => p.id === parentId);
+                if (parentItem) {
+                  parentItem.childCount -= 1;
+                }
+              }
+            )
+          );
+        } catch (e) {
+          console.log("error", e);
+        }
+      },
       invalidatesTags: (results, meta, args) => [
         { parentId: args.parentId, type: TagTypes.ChildItems },
-        { type: TagTypes.ParentItems },
       ],
     }),
 
